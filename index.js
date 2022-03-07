@@ -111,6 +111,7 @@ window.onload = function () {
         custom_category
       })
     }
+    // 导入导出功能
     async getAllData () {
       const production = await this.production.toArray()
       const collection = await this.collection.toArray()
@@ -128,8 +129,24 @@ window.onload = function () {
       await this.collection.bulkPut(data.collection)
       await this.collection_class_list.bulkPut(data.collection_class_list)
     }
-
-
+    // 检索筛选功能
+    async searchByTitle (title) {
+      let result = []
+      result = await this.production.filter(item => {
+        return item.title.indexOf(title) != -1
+      }).toArray()
+      return result
+    }
+    async searchByTag (tagName) {
+      let result = await this.production.filter(item => {
+        totalTagArr = item.custom_category.concat(item.tag)
+        const res = totalTagArr.filter(item => {
+          return item.originTag.indexOf(tagName) || item.translatedTag.indexOf(tagName)
+        })
+        return res.length > 0
+      })
+      return result
+    }
   }
 
 
@@ -404,7 +421,14 @@ window.onload = function () {
           JsonObj = JSON.parse(this.result)
           that.db.importAllData(JsonObj)
         }
-
+      },
+      async searchByTitle (title) {
+        const result = await this.db.searchByTitle(title)
+        this.collectionListContent = result
+      },
+      async searchByTag (tagName) {
+        const result = await this.db.searchByTag(tagName)
+        this.collectionListContent = result
       }
     }
   })
